@@ -1,0 +1,54 @@
+packages:
+  device_base: !include templates/device_base.yaml
+
+wifi: !include templates/wifi_iot.yaml
+
+substitutions:
+  devicename: loungeuplight
+  friendly_name: Lounge Light Plug
+  device_description: Sonoff S20 Power Plug
+
+esphome:
+  name: ${devicename}
+  comment: ${device_description}
+  platform: ESP8266
+  board: esp01_1m
+
+i2c:
+  - id: bus_a
+    sda: GPIO1
+    scl: GPIO3
+
+sensor:
+  - platform: bh1750
+    name: ${friendly_name} lux
+    address: 0x23
+    update_interval: 60s
+    id: light1
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO0
+      mode: INPUT_PULLUP
+      inverted: True
+    id: button_1
+    on_press:
+      then:
+        - light.toggle: light_1
+
+output:
+  - platform: gpio
+    pin: GPIO12
+    id: relay_1
+
+light:
+  - platform: binary
+    name: ${friendly_name} Button
+    id: light_1
+    output: relay_1
+
+status_led:
+  pin:
+    number: GPIO13
+    inverted: yes

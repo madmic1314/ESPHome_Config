@@ -1,0 +1,520 @@
+packages:
+  device_base: !include templates/device_base.yaml
+
+wifi: !include templates/wifi_iot.yaml
+
+esphome:
+  platform: ESP32
+  board: nodemcu-32s
+
+substitutions:
+  devicename: mkinfoscreens
+  friendly_name: Mr K Info
+  device_description: ESP32 device with 4 screens showing awesome info
+
+i2c:
+  - id: bus_a
+    sda: GPIO21
+    scl: GPIO22
+  - id: bus_b
+    sda: GPIO4
+    scl: GPIO5
+
+sensor:
+  - platform: bh1750
+    i2c_id: bus_a
+    name: ${friendly_name} Illuminance
+    address: 0x23
+    update_interval: 120s
+    id: ligh1
+  - platform: bmp085
+    i2c_id: bus_b
+    temperature:
+      name: ${friendly_name} Temperature
+      id: temp1
+    pressure:
+      name: ${friendly_name} Pressure
+      id: pres1
+    address: 0x77
+    update_interval: 120s
+  - platform: homeassistant
+    name: "HallTemp"
+    internal: true
+    entity_id: sensor.hallway_temperature
+    id: halltemp
+  - platform: homeassistant
+    name: "HallTarget"
+    internal: true
+    entity_id: sensor.hallwaynest_target
+    id: halltarget
+  - platform: homeassistant
+    name: "Ph_Batt"
+    internal: true
+    entity_id: sensor.mr_k_battery_level
+    id: mrkphbatt
+  - platform: homeassistant
+    name: "SpeedTest"
+    internal: true
+    entity_id: sensor.speedtest_download
+    id: intspeed
+  - platform: homeassistant
+    name: "Johnny5 Range"
+    internal: true
+    entity_id: sensor.johnny5_electric_range
+    id: j5range
+  - platform: homeassistant
+    name: "J5_Batt"
+    internal: true
+    entity_id: sensor.johnny5_battery_level
+    id: j5batt
+#  - platform: homeassistant
+#    name: "J5_ChgLeft"
+#    internal: true
+#    entity_id: sensor.johnny5_charging_time_left
+#    id: j5chrtime
+  - platform: homeassistant
+    name: "OP_Comp"
+    internal: true
+    entity_id: sensor.octoprint_print_progress
+    id: octocomp
+  - platform: homeassistant
+    name: "Octo_BedA"
+    internal: true
+    entity_id: sensor.octoprint_bed_temperature
+    id: prnbea
+  - platform: homeassistant
+    name: "Octo_BedT"
+    internal: true
+    entity_id: sensor.octoprint_bed_target
+    id: prnbet
+  - platform: homeassistant
+    name: "Octo_ToolA"
+    internal: true
+    entity_id: sensor.octoprint_tool_0_temperature
+    id: prnhea
+  - platform: homeassistant
+    name: "Octo_ToolT"
+    internal: true
+    entity_id: sensor.octoprint_tool_0_target
+    id: prnhet
+  - platform: homeassistant
+    name: "Octo_Z"
+    internal: true
+    entity_id: sensor.octoprint_current_z
+    id: octoz
+  - platform: homeassistant
+    name: "SvrPowW"
+    internal: true
+    entity_id: sensor.server_power_plug_wattage
+    id: svrpow
+  - platform: homeassistant
+    name: "HPowW"
+    internal: true
+    entity_id: sensor.house_electricity_meter_kw
+    id: hpow
+  - platform: homeassistant
+    name: "ChileDays"
+    internal: true
+    entity_id: sensor.anniversary_chile_trip
+    id: cdays
+
+text_sensor:
+  - platform: homeassistant
+    name: "J5_LastCon"
+    internal: true
+    entity_id: sensor.johnny5_last_connected
+    id: carcon
+  - platform: homeassistant
+    name: "OctoRemain"
+    internal: true
+    entity_id: sensor.octoprint_print_time_left
+    id: octotr
+  - platform: homeassistant
+    name: "HallNestMode"
+    internal: true
+    entity_id: sensor.hallwaynest_mode
+    id: hallmode
+  - platform: homeassistant
+    name: "J5_ChgLeft"
+    internal: true
+    entity_id: sensor.johnny5_charging_time_left
+    id: j5chrtime
+
+binary_sensor:
+  - platform: homeassistant
+    name: "t4_mrkinfo"
+    internal: true
+    entity_id: input_boolean.time_for_mr_k_info
+    id: t4mrkinfo
+  - platform: homeassistant
+    name: "J5_Chg"
+    internal: true
+    entity_id: switch.johnny5_charging
+    id: j5chr
+  - platform: homeassistant
+    name: "J5_ExtPow"
+    internal: true
+    entity_id: binary_sensor.johnny5_external_power
+    id: j5extpow
+  - platform: homeassistant
+    name: "Octo_Prn"
+    internal: true
+    entity_id: binary_sensor.octoprint_printing
+    id: octoprn
+  - platform: homeassistant
+    name: "Octo_Con"
+    internal: true
+    entity_id: binary_sensor.octoprint_connected
+    id: octocon
+  - platform: homeassistant
+    name: "G_Door"
+    internal: true
+    entity_id: binary_sensor.garage_door_state_di_11
+    id: gdoor
+  - platform: homeassistant
+    name: "G_Side"
+    internal: true
+    entity_id: binary_sensor.garage_side_door_di_10
+    id: gsdoor
+  - platform: homeassistant
+    name: "Gate"
+    internal: true
+    entity_id: binary_sensor.side_gate_di_9
+    id: sidegate
+  - platform: homeassistant
+    name: "HA_Upd"
+    internal: true
+    entity_id: binary_sensor.updater
+    id: haupg
+  - platform: homeassistant
+    name: "Ad_State"
+    internal: true
+    entity_id: switch.adguard_protection
+    id: adguard
+  - platform: homeassistant
+    name: "3d_Prn_Sw"
+    internal: true
+    entity_id: switch.3d_printer_power_relay
+    id: pow3d
+
+image:
+  - file: "batt0.png"
+    id: batt0
+  - file: "batt20.png"
+    id: batt20
+  - file: "batt40.png"
+    id: batt40
+  - file: "batt60.png"
+    id: batt60
+  - file: "batt80.png"
+    id: batt80
+  - file: "batt100.png"
+    id: batt100
+  - file: "plug.png"
+    id: plug
+  - file: "garageopen.png"
+    id: gopen
+  - file: "garageclosed.png"
+    id: gclosed
+  - file: "adguardon.png"
+    id: adgdon
+  - file: "adguardoff.png"
+    id: adgoff
+  - file: "3dbed.png"
+    id: prnbed
+  - file: "3dnozzle.png"
+    id: prnnoz
+  - file: "haupgrade.png"
+    id: haupgon
+  - file: "hanoupg.png"
+    id: haupgoff
+  - file: "svrpow.png"
+    id: svrelec
+#  - file: "elec.png"
+#    id: carelec
+  - file: "cloud.png"
+    id: cloud
+  - file: "door-open.png"
+    id: dooropen
+  - file: "door-closed.png"  
+    id: doorclosed
+  - file: "gate-open.png"
+    id: gateopen
+  - file: "gate-closed.png"
+    id: gateclosed
+
+time:
+  - platform: homeassistant
+    id: esptime
+#  - platform: sntp
+    on_time:
+      # Off
+      - seconds: 0
+        minutes: 0
+        hours: 22
+        days_of_week: MON-FRI
+        then:
+          - display.page.show: page13
+          - display.page.show: page23
+          - display.page.show: page33
+          - display.page.show: page43
+          - component.update: disp1
+          - component.update: disp2
+          - component.update: disp3
+          - component.update: disp4
+      # On
+      - seconds: 0
+        minutes: 0
+        hours: 8
+        days_of_week: MON-FRI
+        then:
+          - display.page.show: page11
+          - display.page.show: page21
+          - display.page.show: page31
+          - display.page.show: page41
+          - component.update: disp1
+          - component.update: disp2
+          - component.update: disp3
+          - component.update: disp4
+
+font:
+  - file: 'fonts/BebasNeue.ttf'
+    id: font1
+    size: 30
+  - file: 'fonts/BebasNeue.ttf'
+    id: font2
+    size: 36
+  - file: 'fonts/arial.ttf'
+    id: font3
+    size: 14
+    glyphs: '!"%()+,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz\/|;@?'
+
+display:
+  - platform: ssd1306_i2c
+    i2c_id: bus_b
+    model: "SSD1306 128x64"
+    address: 0x3D
+    id: disp1
+    rotation: 180
+    update_interval: 15s
+    pages:
+      - id: page11
+        lambda: |-
+          it.strftime(64, 10, id(font3), TextAlign::BASELINE_CENTER, "%d-%m-%Y", id(esptime).now());
+          it.printf(128, 25, id(font3), TextAlign::BASELINE_RIGHT, "T:%.1f", id(temp1).state);
+          it.printf(128, 40, id(font3), TextAlign::BASELINE_RIGHT, "P:%.0f", id(pres1).state);
+          it.printf(128, 55, id(font3), TextAlign::BASELINE_RIGHT, "I:%.0f", id(ligh1).state);
+          if (id(mrkphbatt).state > 0) {
+            it.printf(0, 25, id(font3), TextAlign::BASELINE_LEFT, "Ph: %.0f%%", id(mrkphbatt).state);
+          } else {
+            it.print(0, 25, id(font3), TextAlign::BASELINE_LEFT, "Ph: Er");
+          }
+          it.strftime(0, 64, id(font2), TextAlign::BASELINE_LEFT, "%H:%M", id(esptime).now());
+          it.printf(70, 60, id(font3), TextAlign::BASELINE_LEFT, "%.0f", id(cdays).state);
+      - id: page13
+        lambda: |-
+          it.fill(COLOR_OFF);
+  - platform: ssd1306_i2c
+    i2c_id: bus_b
+    model: "SSD1306 128x64"
+    address: 0x3C
+    id: disp2
+    rotation: 180
+    update_interval: 15s
+    pages:
+      - id: page21
+        lambda: |-
+          it.print(64, 10, id(font3), TextAlign::BASELINE_CENTER, "Home Assistant");
+          it.image(0, 20, id(cloud));
+          it.printf(22, 35, id(font3), TextAlign::BASELINE_LEFT, "%.1f", id(intspeed).state);
+          it.printf(128, 25, id(font3), TextAlign::BASELINE_RIGHT, "H%.3fkW", id(hpow).state);
+          it.printf(128, 40, id(font3), TextAlign::BASELINE_RIGHT, "S%.0fW", id(svrpow).state);
+          if (id(haupg).state) {
+            it.image(0, 44, id(haupgon));
+          } else {
+            it.image(0, 44, id(haupgoff));
+          }
+          if (id(adguard).state) {
+            it.image(27, 44, id(adgdon));
+          } else {
+            it.image(27, 44, id(adgoff));
+          }
+          if (id(sidegate).state) {
+            it.image(55, 44, id(gateopen));
+          } else {
+            it.image(55 ,44, id(gateclosed));
+          }
+          if (id(gsdoor).state) {
+            it.image(81, 44, id(dooropen));
+          } else {
+            it.image(81 ,44, id(doorclosed));
+          }
+          if (id(gdoor).state) {
+            it.image(108, 44, id(gopen));
+          } else {
+            it.image(108, 44, id(gclosed));
+          }
+      - id: page23
+        lambda: |-
+          it.fill(COLOR_OFF);
+  - platform: ssd1306_i2c
+    i2c_id: bus_a
+    model: "SSD1306 128x64"
+    address: 0x3C
+    id: disp3
+    rotation: 180
+    update_interval: 15s
+    pages:
+      - id: page31
+        lambda: |-
+          it.print(64, 10, id(font3), TextAlign::BASELINE_CENTER, "Johnny 5");
+          it.printf(64, 25, id(font3), TextAlign::BASELINE_CENTER, "Charging: %s", id(j5chr).state ? "On" : "Off");
+          it.printf(3, 40, id(font3), TextAlign::BASELINE_LEFT, "%s", id(carcon).state.c_str());
+          if (id(j5batt).state > 95) {
+            it.printf(13, 64, id(font1), TextAlign::BASELINE_LEFT, "%.0f%%", id(j5batt).state);
+            it.image(0, 44, id(batt100));
+          } else if (id(j5batt).state > 79) {
+            it.printf(13, 64, id(font1), TextAlign::BASELINE_LEFT, "%.0f%%", id(j5batt).state);
+            it.image(0, 44, id(batt80));
+          } else if (id(j5batt).state > 59) {
+            it.printf(13, 64, id(font1), TextAlign::BASELINE_LEFT, "%.0f%%", id(j5batt).state);
+            it.image(0, 44, id(batt60));
+          } else if (id(j5batt).state > 39) {
+            it.printf(13, 64, id(font1), TextAlign::BASELINE_LEFT, "%.0f%%", id(j5batt).state);
+            it.image(0, 44, id(batt40));
+          } else if (id(j5batt).state > 19) {
+            it.printf(13, 64, id(font1), TextAlign::BASELINE_LEFT, "%.0f%%", id(j5batt).state);
+            it.image(0, 44, id(batt20));
+          } else if (id(j5batt).state > 0) {
+            it.printf(13, 64, id(font1), TextAlign::BASELINE_LEFT, "%.0f%%", id(j5batt).state);
+            it.image(0, 44, id(batt0));
+          } else {
+            it.printf(13, 64, id(font1), TextAlign::BASELINE_LEFT, "ER.");
+            it.image(0, 44, id(batt0));
+          }
+          if (id(j5range).state > 0) {
+            it.printf(128, 64, id(font1), TextAlign::BASELINE_RIGHT, "R:%.0f", id(j5range).state);
+          } else {
+            it.printf(128, 64, id(font1), TextAlign::BASELINE_RIGHT, "R:Er");
+          }
+      - id: page32
+        lambda: |-
+          it.print(64, 10, id(font3), TextAlign::BASELINE_CENTER, "Johnny 5");
+          it.printf(64, 40, id(font1), TextAlign::BASELINE_CENTER, "Chg: %s", id(j5chrtime).state.c_str());
+          if (id(j5batt).state > 95) {
+            it.image(0, 44, id(batt100));
+            it.printf(13, 64, id(font1), TextAlign::BASELINE_LEFT, "%.0f%%", id(j5batt).state);
+          } else if (id(j5batt).state > 79) {
+            it.image(0, 44, id(batt80));
+            it.printf(13, 64, id(font1), TextAlign::BASELINE_LEFT, "%.0f%%", id(j5batt).state);
+          } else if (id(j5batt).state > 59) {
+            it.image(0, 44, id(batt60));
+            it.printf(13, 64, id(font1), TextAlign::BASELINE_LEFT, "%.0f%%", id(j5batt).state);
+          } else if (id(j5batt).state > 39) {
+            it.image(0, 44, id(batt40));
+            it.printf(13, 64, id(font1), TextAlign::BASELINE_LEFT, "%.0f%%", id(j5batt).state);
+          } else if (id(j5batt).state > 19) {
+            it.image(0, 44, id(batt20));
+            it.printf(13, 64, id(font1), TextAlign::BASELINE_LEFT, "%.0f%%", id(j5batt).state);
+          } else if (id(j5batt).state > 0) {
+            it.image(0, 44, id(batt0));
+            it.printf(13, 64, id(font1), TextAlign::BASELINE_LEFT, "%.0f%%", id(j5batt).state);
+          } else {
+            it.image(0, 44, id(batt0));
+            it.printf(13, 64, id(font1), TextAlign::BASELINE_LEFT, "ER");
+          }
+          if (id(j5range).state > 0) {
+            it.printf(128, 64, id(font1), TextAlign::BASELINE_RIGHT, "R:%.0f", id(j5range).state);
+          } else {
+            it.printf(128, 64, id(font1), TextAlign::BASELINE_RIGHT, "R:Er");
+          }
+      - id: page33
+        lambda: |-
+          it.fill(COLOR_OFF);
+  - platform: ssd1306_i2c
+    i2c_id: bus_a
+    model: "SSD1306 128x64"
+    address: 0x3D
+    id: disp4
+    rotation: 180
+    update_interval: 15s
+    pages:
+      - id: page41
+        lambda: |-
+          if (id(pow3d).state) {
+            it.print(64, 10, id(font3), TextAlign::BASELINE_CENTER, "OctoPrint");
+            it.print(128, 64, id(font1), TextAlign::BASELINE_RIGHT, "ON");
+            it.image(0, 12, id(prnbed));
+            it.printf(22, 28, id(font3), TextAlign::BASELINE_LEFT, "%.1f", id(prnbea).state);
+            it.image(0, 32, id(prnnoz));
+            it.printf(22, 46, id(font3), TextAlign::BASELINE_LEFT, "%.1f", id(prnhea).state);
+            if (id(octocon).state) {
+              it.printf(128,28, id(font3), TextAlign::BASELINE_RIGHT, "Con");
+            } else {
+              it.printf(128,28, id(font3), TextAlign::BASELINE_RIGHT, "Dis");
+            }
+          } else {
+            it.print(61, 10, id(font3), TextAlign::BASELINE_CENTER, "House Temp");
+            it.printf(0, 25, id(font3), TextAlign::BASELINE_LEFT, "Current: %.1f", id(halltemp).state);
+            it.printf(0, 40, id(font3), TextAlign::BASELINE_LEFT, "Target: %.1f", id(halltarget).state);
+            it.printf(2, 55, id(font3), TextAlign::BASELINE_LEFT, "Mode: %s", id(hallmode).state.c_str());
+          }
+      - id: page42
+        lambda: |-
+          it.print(64, 10, id(font3), TextAlign::BASELINE_CENTER, "OctoPrint Printing");
+          it.printf(0, 25, id(font3), TextAlign::BASELINE_LEFT, "Tr:%s", id(octotr).state.c_str());
+          it.printf(128, 25, id(font3), TextAlign::BASELINE_RIGHT, "%.0f%%", id(octocomp).state);
+          it.printf(128, 40, id(font3), TextAlign::BASELINE_RIGHT, "%.2f", id(octoz).state);
+          it.image(0, 28, id(prnbed));
+          it.printf(22, 40, id(font3), TextAlign::BASELINE_LEFT, "%.1f - %.0f", id(prnbea).state, id(prnbet).state);
+          it.image(0, 47, id(prnnoz));
+          it.printf(22, 60, id(font3), TextAlign::BASELINE_LEFT, "%.1f - %.0f", id(prnhea).state, id(prnhet).state);
+      - id: page43
+        lambda: |-
+          it.fill(COLOR_OFF);
+
+interval:
+  - interval: 15s
+    then:
+      - display.page.show: !lambda |-
+          if (id(t4mrkinfo).state) {
+            return id(page11);
+          } else {
+            return id(page13);
+          }
+      - component.update: disp1
+  - interval: 15s
+    then:
+      - display.page.show: !lambda |-
+          if (id(t4mrkinfo).state) {
+            return id(page21);
+          } else {
+            return id(page23);
+          }
+      - component.update: disp2
+  - interval: 15s
+    then:
+      - display.page.show: !lambda |-
+          if (id(t4mrkinfo).state) {
+            if (id(j5chr).state) {
+              return id(page32);
+            } else {
+              return id(page31);
+            }
+          } else {
+            return id(page33);
+          }
+      - component.update: disp3
+  - interval: 15s
+    then:
+      - display.page.show: !lambda |-
+          if (id(t4mrkinfo).state) {
+            if (id(octoprn).state) {
+              return id(page42);
+            } else {
+              return id(page41);
+            }
+          } else {
+            return id(page43);
+          }
+      - component.update: disp4

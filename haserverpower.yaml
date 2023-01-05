@@ -1,0 +1,33 @@
+packages:
+  device_base: !include templates/device_base.yaml
+  esphome: !include templates/gosund_up111_bw-shp2/esphome.yaml
+  substitutions: !include templates/gosund_up111_bw-shp2/substitutions.yaml
+  sensor: !include templates/gosund_up111_bw-shp2/sensor.yaml
+  output: !include templates/gosund_up111_bw-shp2/output.yaml
+  status_led: !include templates/gosund_up111_bw-shp2/status_led.yaml
+  binary_sensor: !include templates/gosund_up111_bw-shp2/binary_sensor.yaml
+  light: !include templates/gosund_up111_bw-shp2/light.yaml
+  interval: !include templates/gosund_up111_bw-shp2/interval.yaml
+  script: !include templates/gosund_up111_bw-shp2/script.yaml
+  time: !include templates/gosund_up111_bw-shp2/time.yaml
+
+wifi: !include templates/wifi_iot.yaml
+
+substitutions:
+  devicename: haserverpower
+  friendly_name: HA Power Plug
+
+switch:
+  - platform: gpio
+    name: ${friendly_name}
+    pin: GPIO14
+    id: relay
+    restore_mode: ALWAYS_ON #Try to restore relay state after reboot/power-loss event.
+    #RESTORE_DEFAULT_OFF (Default) - Attempt to restore state and default to OFF if not possible to restore. Uses flash write cycles.
+    #RESTORE_DEFAULT_ON - Attempt to restore state and default to ON. Uses flash write cycles.
+    #ALWAYS_OFF - Always initialize the pin as OFF on bootup. Does not use flash write cycles.
+    #ALWAYS_ON - Always initialize the pin as ON on bootup. Does not use flash write cycles.
+#    on_turn_on: # Action when relay is turned on
+#      - script.execute: led_power_on
+    on_turn_off: # Action when relay is turned off
+      - script.execute: led_relay_off

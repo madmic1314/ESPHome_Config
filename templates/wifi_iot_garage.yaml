@@ -1,0 +1,2 @@
+  ssid: "TA-IoT-Garage"
+  password: !secret wifi_iot_password

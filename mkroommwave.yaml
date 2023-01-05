@@ -1,0 +1,194 @@
+packages:
+  device_base: !include templates/device_base.yaml
+  esphome: !include templates/wemos1mini/esphome.yaml
+  substitutions: !include templates/wemos1mini/substitutions.yaml
+
+wifi: !include templates/wifi_iot.yaml
+
+substitutions:
+  devicename: mkroommwave
+  friendly_name: MK Room Microwave Sensor
+
+switch:
+  - platform: safe_mode
+    internal: true
+    name: use_safe_mode
+  - platform: template
+    name: ${friendly_name}
+    id: "mmwave_sensor"
+    optimistic: true
+    restore_state: true
+    assumed_state: true
+    turn_on_action:
+      - uart.write: "sensorStart"
+      - delay: 1s
+    turn_off_action:
+      - uart.write: "sensorStop"
+      - delay: 1s
+  - platform: template
+    name: ${friendly_name} LED
+    id: "led"
+    optimistic: true
+    restore_state: true
+    assumed_state: true
+    turn_on_action:
+      - switch.turn_off: mmwave_sensor
+      - delay: 1s
+      - uart.write: "setLedMode 1 0"
+      - delay: 1s 
+      - uart.write: "saveConfig"
+      - delay: 3s
+      - switch.turn_on: mmwave_sensor 
+    turn_off_action:
+      - switch.turn_off: mmwave_sensor
+      - delay: 1s
+      - uart.write: "setLedMode 1 1"
+      - delay: 1s      
+      - uart.write: "saveConfig"
+      - delay: 3s
+      - switch.turn_on: mmwave_sensor
+  - platform: template
+    name: ${friendly_name} uart_presence_output
+    id: "uart_presence_output"
+    optimistic: true
+    restore_state: true
+    assumed_state: true
+    turn_on_action:
+      - switch.turn_off: mmwave_sensor
+      - delay: 1s
+      - uart.write: "setUartOutput 1 1"
+      - delay: 1s 
+      - uart.write: "saveConfig"
+      - delay: 3s
+      - switch.turn_on: mmwave_sensor 
+    turn_off_action:
+      - switch.turn_off: mmwave_sensor
+      - delay: 1s
+      - uart.write: "setUartOutput 1 0"
+      - delay: 1s      
+      - uart.write: "saveConfig"
+      - delay: 3s
+      - switch.turn_on: mmwave_sensor     
+      
+  - platform: template
+    name: ${friendly_name} uart_target_output
+    id: "uart_target_output"
+    optimistic: true
+    restore_state: true
+    assumed_state: false
+    turn_on_action:
+      - switch.turn_off: mmwave_sensor
+      - delay: 1s
+      - uart.write: "setUartOutput 2 1 1 1"
+      - delay: 1s 
+      - uart.write: "saveConfig"
+      - delay: 3s
+      - switch.turn_on: mmwave_sensor 
+    turn_off_action:
+      - switch.turn_off: mmwave_sensor
+      - delay: 1s
+      - uart.write: "setUartOutput 2 0"
+      - delay: 1s      
+      - uart.write: "saveConfig"
+      - delay: 3s
+      - switch.turn_on: mmwave_sensor       
+
+binary_sensor:
+- platform: gpio
+  name: ${friendly_name} Device
+  pin:
+    number: GPIO16
+    mode: INPUT_PULLDOWN
+
+uart:
+  id: uart_bus
+  tx_pin: GPIO4
+  rx_pin: GPIO5
+  baud_rate: 115200
+  debug:
+    direction: BOTH
+    dummy_receiver: true
+    after:
+      delimiter: "\n"
+    sequence:
+      - lambda: UARTDebug::log_string(direction, bytes);
+
+number:
+  - platform: template
+    name: ${friendly_name} Distance
+    id: distance
+    min_value: 0
+    max_value: 1350
+    initial_value: 315
+    optimistic: true
+    step: 15
+    restore_value: true
+    unit_of_measurement: cm
+    mode: box
+    set_action:
+      - switch.turn_off: mmwave_sensor
+      - delay: 1s
+      - uart.write: !lambda
+                      int cm = (int)ceil(x / 15.0);
+                      std::string cms = "detRangeCfg -1 0 " + to_string(cm);
+                      return std::vector<unsigned char>(cms.begin(), cms.end());
+      - delay: 1s
+      - uart.write: "saveCfg 0x45670123 0xCDEF89AB 0x956128C6 0xDF54AC89"
+      - delay: 1s
+      - switch.turn_on: mmwave_sensor
+  - platform: template
+    name: ${friendly_name} Latency
+    id: latency
+    min_value: 0
+    max_value: 65000
+    initial_value: 12500
+    optimistic: true
+    step: 25
+    restore_value: true
+    unit_of_measurement: ms
+    mode: box
+    set_action:
+      - switch.turn_off: mmwave_sensor
+      - delay: 1s
+      - uart.write: !lambda
+                      int ms = (int)ceil(x / 25.0);
+                      std::string mss = "outputLatency -1 0 " + to_string(ms);
+                      return std::vector<unsigned char>(mss.begin(), mss.end());
+      - delay: 1s
+      - uart.write: "saveCfg 0x45670123 0xCDEF89AB 0x956128C6 0xDF54AC89"
+      - delay: 1s
+      - switch.turn_on: mmwave_sensor
+
+  - platform: template
+    name: ${friendly_name} Sensitivity
+    id: sensitivity
+    min_value: 0
+    max_value: 9
+    initial_value: 7
+    optimistic: true
+    step: 1
+    restore_value: true
+    set_action:
+      - switch.turn_off: mmwave_sensor
+      - delay: 1s
+      - uart.write: !lambda
+                      std::string mss = "setSensitivity " + to_string((int)x);
+                      return std::vector<unsigned char>(mss.begin(), mss.end());
+      - delay: 1s
+      - uart.write: "saveConfig"
+      - delay: 1s
+      - switch.turn_on: mmwave_sensor  
+
+button:
+  - platform: restart
+    name: ${friendly_name} Restart
+
+  - platform: template
+    name: ${friendly_name} Factory Reset Sensor
+    id: "factory_reset_sensor"
+    on_press:
+      - switch.turn_off: mmwave_sensor
+      - delay: 1s
+      - uart.write: "resetCfg"
+      - delay: 3s
+      - switch.turn_on: mmwave_sensor

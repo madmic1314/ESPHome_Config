@@ -1,0 +1,646 @@
+packages:
+  device_base: !include templates/device_base.yaml
+
+wifi: !include templates/wifi_iot.yaml
+
+esphome:
+  platform: ESP32
+  board: az-delivery-devkit-v4
+  on_boot:
+    priority: 200
+    then:
+      - display.page.show: page1
+      - delay: 10s
+      - display.page.show: page2
+
+#logger:
+#  level: debug
+
+substitutions:
+  devicename: mkinfoscreens2
+  friendly_name: Mr K Info 2
+  device_description: ESP32 device with colour screen showing awesome info
+
+spi:
+  clk_pin: GPIO21
+  mosi_pin: GPIO22
+  miso_pin: GPIO23
+
+i2c:
+  - id: bus_b
+    sda: GPIO16
+    scl: GPIO17
+
+output:
+  - platform: ledc
+    pin: 32
+    id: gpio_32_backlight_pwm
+
+light:
+  - platform: monochromatic
+    output: gpio_32_backlight_pwm
+    name: ${friendly_name} Backlight
+    id: back_light
+    restore_mode: ALWAYS_ON
+
+font:
+  - file: 'fonts/BebasNeue.ttf'
+    id: f_36
+    size: 36
+  - file: 'fonts/BebasNeue.ttf'
+    id: f_30
+    size: 30
+  - file: 'fonts/BebasNeue.ttf'
+    id: f_22
+    size: 22
+  - file: 'fonts/arial.ttf'
+    id: f_14
+    size: 14
+    glyphs: '!"%()+,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz\/|;@?'
+
+color:
+  - id: c_red
+    red: 100%
+    green: 0%
+    blue: 0%
+    white: 0%
+  - id: c_blue
+    red: 0%
+    green: 0%
+    blue: 100%
+    white: 0%
+  - id: c_green
+    red: 0%
+    green: 100%
+    blue: 0%
+    white: 0%
+  - id: c_yellow
+    red: 100%
+    green: 100%
+    blue: 0%
+    white: 0%
+
+display:
+  - platform: ili9341
+    model: TFT 2.4
+    cs_pin: 14
+    dc_pin: 27
+    led_pin: 32
+    reset_pin: 33
+    id: disp1
+    rotation: 270
+    update_interval: 5s
+    pages:
+      - id: page1
+        lambda: |-
+          it.print(160, 75, id(f_36), c_green, TextAlign::BASELINE_CENTER, "Mr K Info Screen");
+          it.print(160, 130, id(f_36), c_green, TextAlign::BASELINE_CENTER, "Booting...");
+      - id: page2
+        lambda: |-
+          it.strftime(0, 30, id(f_36), TextAlign::BASELINE_LEFT, "%H:%M", id(esptime).now());
+          it.strftime(70, 30, id(f_30), TextAlign::BASELINE_LEFT, "%d-%m-%Y", id(esptime).now());
+          if(strcmp(id(wea).state.c_str(),"sunny") == 0) {
+            it.image(252, 0, id(sunny));
+          } else if(strcmp(id(wea).state.c_str(),"clear-night") == 0) {
+            it.image(252, 0, id(clearnight));
+          } else if(strcmp(id(wea).state.c_str(),"cloudy") == 0) {
+            it.image(252, 0, id(cloudy));
+          } else if(strcmp(id(wea).state.c_str(),"fog") == 0) {
+            it.image(252, 0, id(fog));
+          } else if(strcmp(id(wea).state.c_str(),"hail") == 0) {
+            it.image(252, 01, id(hail));
+          } else if(strcmp(id(wea).state.c_str(),"lightning-rainy") == 0) {
+            it.image(252, 0, id(lightningrainy));
+          } else if(strcmp(id(wea).state.c_str(),"lightning") == 0) {
+            it.image(252, 0, id(lightningrainy));
+          } else if(strcmp(id(wea).state.c_str(),"partlycloudy") == 0) {
+            it.image(252, 0, id(partlycloudy));
+          } else if(strcmp(id(wea).state.c_str(),"pouring") == 0) {
+            it.image(252, 0, id(pouring));
+          } else if(strcmp(id(wea).state.c_str(),"rainy") == 0) {
+            it.image(252, 0, id(rain));
+          } else if(strcmp(id(wea).state.c_str(),"snowy") == 0) {
+            it.image(252, 0, id(snow));
+          } else if(strcmp(id(wea).state.c_str(),"snowy-rainy") == 0) {
+            it.image(252, 0, id(snowyrainy));
+          } else if(strcmp(id(wea).state.c_str(),"windy") == 0) {
+            it.image(252, 0, id(windy));
+          } else if(strcmp(id(wea).state.c_str(),"windy-variant") == 0) {
+            it.image(252, 0, id(windyvariant));
+          } else if(strcmp(id(wea).state.c_str(),"exceptional") == 0) {
+            it.image(252, 0, id(exceptional));
+          } else {
+            it.printf(260,35, id(f_14), TextAlign::BASELINE_LEFT, "W:%s", id(wea).state.c_str());
+          }
+
+          if (isnan(id(mrkphbatt).state)) {
+            it.image(-5, 40, id(mobile), c_red);
+          } else if (id(mrkphbatt).state < 40) {
+            it.image(-5, 40, id(mobile), c_red);  
+          } else if (id(mrkphbatt).state < 70) {
+            it.image(-5, 40, id(mobile), c_yellow);
+          } else {
+            it.image(-5, 40, id(mobile), c_green);
+          }
+          if (id(mrkphbatt).state > 0) {
+            it.printf(12, 57, id(f_14), TextAlign::BASELINE_LEFT, "%.0f%%", id(mrkphbatt).state);
+          } else {
+            it.print(12, 57, id(f_14), TextAlign::BASELINE_LEFT, "??");
+          }
+          if (id(tbday).state < 30) {
+            it.image(55, 40, id(cake), c_red);  
+          } else if (id(tbday).state < 90) {
+            it.image(55, 40, id(cake), c_yellow);
+          } else {
+            it.image(55, 40, id(cake), c_green);
+          }
+          it.printf(75, 57, id(f_14), TextAlign::BASELINE_LEFT, "%.0f", id(tbday).state);
+          if (id(wedann).state < 30) {
+            it.image(105, 40, id(ring), c_red);  
+          } else if (id(wedann).state < 90) {
+            it.image(105, 40, id(ring), c_yellow);
+          } else {
+            it.image(105, 40, id(ring), c_green);
+          }
+          it.printf(125, 57, id(f_14), TextAlign::BASELINE_LEFT, "%.0f", id(wedann).state);
+          it.printf(155, 57, id(f_14), TextAlign::BASELINE_LEFT, "Chile: %.0f", id(cdays).state);
+          it.printf(255, 25, id(f_22), TextAlign::BASELINE_RIGHT, "%.0f°C", id(weatemp).state);
+          
+          it.line(0, 63, 320, 63);
+          it.image(0, 70, id(home));
+          it.printf(245, 75, id(f_14), TextAlign::BASELINE_LEFT, "H:%.3fkW", id(hpow).state);
+          it.printf(245, 90, id(f_14), TextAlign::BASELINE_LEFT, "S:%.0fW", id(svrpow).state);
+          if(strcmp(id(hallmode).state.c_str(), "heating") == 0) {
+            it.printf(35, 90, id(f_30), c_red, TextAlign::BASELINE_LEFT, "%.1f°C", id(halltemp).state);
+            it.printf(110, 90, id(f_22), c_red, TextAlign::BASELINE_LEFT, "%.1f°C", id(halltarget).state);
+          } else if(strcmp(id(hallmode).state.c_str(), "idle") == 0) {
+            it.printf(35, 90, id(f_30), c_blue, TextAlign::BASELINE_LEFT, "%.1f°C", id(halltemp).state);
+            it.printf(110, 90, id(f_22), c_blue, TextAlign::BASELINE_LEFT, "%.1f°C", id(halltarget).state);
+          } else {
+            it.printf(35, 90, id(f_30), TextAlign::BASELINE_LEFT, "%.1f°C", id(halltemp).state);
+            it.printf(110, 90, id(f_22), TextAlign::BASELINE_LEFT, "%.1f°C", id(halltarget).state);
+          }
+
+          // Starting left to right y=+25 each time
+          it.print(38, 105, id(f_14), TextAlign::BASELINE_CENTER, "Inside");
+          if (id(adguard).state) {
+            it.image(0, 110, id(adgdon), c_green);
+          } else {
+            it.image(0, 110, id(adgoff), c_red);
+          }
+          if (id(intspeed).state >65) {
+            it.printf(37, 132, id(f_30), c_green, TextAlign::BASELINE_CENTER, "%.0f", id(intspeed).state);
+          } else if (id(intspeed).state >50) {
+            it.printf(37, 132, id(f_30), c_yellow, TextAlign::BASELINE_CENTER, "%.0f", id(intspeed).state);
+          } else {
+            it.printf(37, 132, id(f_30), c_red, TextAlign::BASELINE_CENTER, "%.0f", id(intspeed).state);
+          }
+          if (id(llight).state) {
+            it.image(55, 110, id(bulb), c_yellow);
+          } else {
+            it.image(55, 110, id(bulb));
+          }
+          it.line(77, 92, 77, 135);
+          it.print(102, 105, id(f_14), TextAlign::BASELINE_CENTER, "Front");
+          if (id(fdoor).state) {
+            it.image(80, 110, id(dooropen), c_red);
+          } else {
+            it.image(80, 110, id(doorclosed), c_green);
+          }
+          if (id(oflight).state) {
+            it.image(105, 110, id(bulb), c_yellow);
+          } else {
+            it.image(105, 110, id(bulb));
+          }
+          it.line(127, 92, 127, 135);
+          it.print(163, 105, id(f_14), TextAlign::BASELINE_CENTER, "Rear");
+          if (id(udoor).state) {
+            it.image(130, 110, id(dooropen), c_red);
+          } else {
+            it.image(130, 110, id(doorclosed), c_green);
+          }
+          if (id(orlight).state) {
+            it.image(155, 110, id(bulb), c_yellow);
+          } else {
+            it.image(155, 110, id(bulb));
+          }
+          if (id(sidegate).state) {
+            it.image(180, 110, id(gateopen), c_red);
+          } else {
+            it.image(180, 110, id(gateclosed), c_green);
+          }
+          it.line(202, 92, 202, 135);
+          it.print(238, 105, id(f_14), TextAlign::BASELINE_CENTER, "Garage");
+          if (id(gsdoor).state) {
+            it.image(205, 110, id(dooropen), c_red);
+          } else {
+            it.image(205, 110, id(doorclosed), c_green);
+          }
+          if (id(glight).state) {
+            it.image(230, 110, id(bulb), c_yellow);
+          } else {
+            it.image(230, 110, id(bulb));
+          }
+          if (id(gdoor).state) {
+            it.image(255, 110, id(gopen), c_red);
+          } else {
+            it.image(255, 110, id(gclosed), c_green);
+          }
+
+          it.line(0, 135, 320, 135);
+          it.print(0, 160, id(f_30), TextAlign::BASELINE_LEFT, "OctoPrint");
+          it.image(115, 143, id(prnnoz));
+          if (isnan(id(prnhea).state)) {
+            it.print(137, 155, id(f_14), TextAlign::BASELINE_LEFT, "0 / 0");
+          } else {
+            it.printf(137, 155, id(f_14), TextAlign::BASELINE_LEFT, "%.0f / %.0f", id(prnhea).state, id(prnhet).state);
+          }
+          it.image(225, 143, id(prnbed));
+          if (isnan(id(prnhea).state)) {
+            it.printf(248, 155, id(f_14), TextAlign::BASELINE_LEFT, "0 / 0");
+          } else {
+            it.printf(248, 155, id(f_14), TextAlign::BASELINE_LEFT, "%.0f / %.0f", id(prnbea).state, id(prnbet).state);
+          }
+          it.printf(0, 177, id(f_14), TextAlign::BASELINE_LEFT, "Tr: %s", id(octotr).state.c_str());
+          if (id(octoz).state > 0) {
+            it.printf(120, 177, id(f_14), TextAlign::BASELINE_CENTER, "Z: %.2f", id(octoz).state);
+          } else {
+            it.print(120, 177, id(f_14), TextAlign::BASELINE_CENTER, "Z: 0");
+          }
+          if (id(octocomp).state > 0) {
+            it.printf(240, 177, id(f_14), TextAlign::BASELINE_RIGHT, "Comp: %.0f%%", id(octocomp).state);
+          } else {
+            it.print(240, 177, id(f_14), TextAlign::BASELINE_RIGHT, "Comp: 0%");
+          }
+
+          it.line(0, 181, 320, 181);
+          if (id(j5heat).state) {
+            it.image(0, 187, id(j5), c_red);
+          } else {
+            it.image(0, 187, id(j5));
+          }
+          it.image(0, 190, id(j5));
+          it.printf(90, 200, id(f_14), TextAlign::BASELINE_LEFT, "Allowed: %s", id(hchgall).state ? "On" : "Off");
+          it.printf(320, 200, id(f_14), TextAlign::BASELINE_RIGHT, "A: %.1fkW", id(hchramp).state);
+          it.printf(90, 212, id(f_14), TextAlign::BASELINE_LEFT, "Charging: %s", id(j5chr).state ? "On" : "Off");
+          it.printf(320, 212, id(f_14), TextAlign::BASELINE_RIGHT, "C: %.1fkW", id(j5chgpow).state);
+          if (isnan(id(j5batt).state)) {
+            it.image(0, 220, id(batt0));
+            it.printf(20, 240, id(f_30), TextAlign::BASELINE_LEFT, "??");
+          } else if (id(j5batt).state > 95) {
+            it.image(0, 220, id(batt100), c_green);
+            it.printf(17, 240, id(f_30), c_green, TextAlign::BASELINE_LEFT, "%.0f%%", id(j5batt).state);
+          } else if (id(j5batt).state > 69) {
+            it.image(0, 220, id(batt80), c_green);
+            it.printf(17, 240, id(f_30), c_green, TextAlign::BASELINE_LEFT, "%.0f%%", id(j5batt).state);
+          } else if (id(j5batt).state > 59) {
+            it.image(0, 220, id(batt60), c_yellow);
+            it.printf(17, 240, id(f_30), c_yellow, TextAlign::BASELINE_LEFT, "%.0f%%", id(j5batt).state);
+          } else if (id(j5batt).state > 39) {
+            it.image(0, 220, id(batt40), c_yellow);
+            it.printf(17, 240, id(f_30), c_yellow, TextAlign::BASELINE_LEFT, "%.0f%%", id(j5batt).state);
+          } else if (id(j5batt).state > 19) {
+            it.image(0, 220, id(batt20), c_red);
+            it.printf(17, 240, id(f_30), c_red, TextAlign::BASELINE_LEFT, "%.0f%%", id(j5batt).state);
+          } else if (id(j5batt).state > 0) {
+            it.image(0, 220, id(batt0), c_red);
+            it.printf(17, 240, id(f_30), c_red, TextAlign::BASELINE_LEFT, "%.0f%%", id(j5batt).state);
+          }
+          it.image(100, 220, id(road));
+          if (isnan(id(j5range).state)) {
+            it.printf(125, 240, id(f_30), TextAlign::BASELINE_LEFT, "??");
+          } else if (id(j5range).state > 180) {
+            it.printf(125, 240, id(f_30), c_green, TextAlign::BASELINE_LEFT, "%.0f", id(j5range).state);
+          } else if (id(j5range).state > 100) {
+            it.printf(125, 240, id(f_30), c_yellow, TextAlign::BASELINE_LEFT, "%.0f", id(j5range).state);
+          } else {
+            it.printf(125, 240, id(f_30), c_red, TextAlign::BASELINE_LEFT, "%.0f", id(j5range).state);
+          }
+          it.printf(320, 240, id(f_30), TextAlign::BASELINE_RIGHT, "%s", id(j5chrtime).state.c_str());
+
+
+      - id: page3
+        lambda: |-
+          it.fill(COLOR_OFF);
+
+time:
+  - platform: homeassistant
+    id: esptime
+
+sensor:
+  - platform: bmp085
+    i2c_id: bus_b
+    temperature:
+      name: ${friendly_name} Temperature
+      id: temp1
+    pressure:
+      name: ${friendly_name} Pressure
+      id: pres1
+    address: 0x77
+    update_interval: 120s
+  - platform: homeassistant
+    name: "HallTemp"
+    internal: true
+    entity_id: sensor.hallway_temperature
+    id: halltemp
+  - platform: homeassistant
+    name: "HallTarget"
+    internal: true
+    entity_id: sensor.hallwaynest_target
+    id: halltarget
+  - platform: homeassistant
+    name: "Ph_Batt"
+    internal: true
+    entity_id: sensor.mr_k_battery_level
+    id: mrkphbatt
+  - platform: homeassistant
+    name: "SpeedTest"
+    internal: true
+    entity_id: sensor.speedtest_download
+    id: intspeed
+  - platform: homeassistant
+    name: "Johnny5 Range"
+    internal: true
+    entity_id: sensor.johnny_5_range_in_miles
+    id: j5range
+  - platform: homeassistant
+    name: "J5_Batt"
+    internal: true
+    entity_id: sensor.johnny_5_state_of_charge
+    id: j5batt
+  - platform: homeassistant
+    name: "J5 Charging Power"
+    internal: true
+    entity_id: "sensor.johnny_5_charge_power"
+    id: j5chgpow
+  - platform: homeassistant
+    name: "J5 Heat"
+    internal: true
+    entity_id: sensor.johnny_5_climatisation_state
+    id: j5heat
+  - platform: homeassistant
+    name: "OP_Comp"
+    internal: true
+    entity_id: sensor.octoprint_print_progress
+    id: octocomp
+  - platform: homeassistant
+    name: "Octo_BedA"
+    internal: true
+    entity_id: sensor.octoprint_bed_temperature
+    id: prnbea
+  - platform: homeassistant
+    name: "Octo_BedT"
+    internal: true
+    entity_id: sensor.octoprint_bed_target
+    id: prnbet
+  - platform: homeassistant
+    name: "Octo_ToolA"
+    internal: true
+    entity_id: sensor.octoprint_tool_0_temperature
+    id: prnhea
+  - platform: homeassistant
+    name: "Octo_ToolT"
+    internal: true
+    entity_id: sensor.octoprint_tool_0_target
+    id: prnhet
+  - platform: homeassistant
+    name: "Octo_Z"
+    internal: true
+    entity_id: sensor.octoprint_current_z
+    id: octoz
+  - platform: homeassistant
+    name: "SvrPowW"
+    internal: true
+    entity_id: sensor.server_power_plug_wattage
+    id: svrpow
+  - platform: homeassistant
+    name: "HPowW"
+    internal: true
+    entity_id: sensor.house_electricity_meter_kw
+    id: hpow
+  - platform: homeassistant
+    name: "ChileDays"
+    internal: true
+    entity_id: sensor.anniversary_chile_trip
+    id: cdays
+  - platform: homeassistant
+    name: "TBirthdayDays"
+    internal: true
+    entity_id: sensor.anniversary_teresa_s_birthday
+    id: tbday
+  - platform: homeassistant
+    name: "WedAnn"
+    internal: true
+    entity_id: sensor.anniversary_wedding_anniversary
+    id: wedann
+  - platform: homeassistant
+    name: "Home Weather Temp"
+    internal: true
+    entity_id: weather.home
+    attribute: temperature
+    id: weatemp
+  - platform: homeassistant
+    name: "Home Charger Current Amps"
+    internal: true
+    entity_id: sensor.psl_164435_current_energy
+    id: hchramp
+
+text_sensor:
+  - platform: homeassistant
+    name: "OctoRemain"
+    internal: true
+    entity_id: sensor.octoprint_print_time_left
+    id: octotr
+  - platform: homeassistant
+    name: "HallNestMode"
+    internal: true
+    entity_id: sensor.hallwaynest_mode
+    id: hallmode
+  - platform: homeassistant
+    name: "J5_ChgLeft"
+    internal: true
+    entity_id: sensor.johnny_5_remaining_charging_time
+    id: j5chrtime
+  - platform: homeassistant
+    name: "Home Weather"
+    internal: true
+    entity_id: weather.home
+    id: wea
+
+binary_sensor:
+#  - platform: gpio
+#    pin:
+#      number: GPIO5
+#      mode: INPUT_PULLUP
+#    name: butt1
+#    internal: true
+#    on_click:
+#    - min_length: 50ms
+#      max_length: 350ms
+##      then:
+##        - display.page.show_next: disp1
+##        - component.update: disp1
+##    - min_length: 500ms
+##      max_length: 1000ms
+#      then:
+#        - light.toggle: back_light
+  - platform: homeassistant
+    name: "Lounge Light"
+    internal: true
+    entity_id: light.lounge_light_plug_button
+    id: llight
+  - platform: homeassistant
+    name: "Front Light"
+    internal: true
+    entity_id: light.outside_front_2
+    id: oflight
+  - platform: homeassistant
+    name: "Garage Light"
+    internal: true
+    entity_id: switch.garage_light_relay_power
+    id: glight
+  - platform: homeassistant
+    name: "Rear Light"
+    internal: true
+    entity_id: switch.outside_rear_lights_power
+    id: orlight
+  - platform: homeassistant
+    name: "J5_Chg"
+    internal: true
+    entity_id: switch.johnny5_charging
+    id: j5chr
+  - platform: homeassistant
+    name: "Octo_Prn"
+    internal: true
+    entity_id: binary_sensor.octoprint_printing
+    id: octoprn
+  - platform: homeassistant
+    name: "G_Door"
+    internal: true
+    entity_id: binary_sensor.garage_door_state_di_11
+    id: gdoor
+  - platform: homeassistant
+    name: "G_Side"
+    internal: true
+    entity_id: binary_sensor.garage_side_door_di_10
+    id: gsdoor
+  - platform: homeassistant
+    name: "Gate"
+    internal: true
+    entity_id: binary_sensor.side_gate_di_9
+    id: sidegate
+  - platform: homeassistant
+    name: "Ad_State"
+    internal: true
+    entity_id: switch.adguard_protection
+    id: adguard
+  - platform: homeassistant
+    name: "3d_Prn_Sw"
+    internal: true
+    entity_id: switch.3d_printer_power_relay
+    id: pow3d
+  - platform: homeassistant
+    name: "Front Door Mag"
+    internal: true
+    entity_id: binary_sensor.front_door
+    id: fdoor
+  - platform: homeassistant
+    name: "Util Door Mag"
+    internal: true
+    entity_id: binary_sensor.utility_door_mag_contact
+    id: udoor
+  - platform: homeassistant
+    name: "Home Charger Allowed"
+    internal: true
+    entity_id: switch.psl_164435_charging_allowed
+    id: hchgall
+
+image:
+  - file: "images/batt0.png"
+    id: batt0
+  - file: "images/batt20.png"
+    id: batt20
+  - file: "images/batt40.png"
+    id: batt40
+  - file: "images/batt60.png"
+    id: batt60
+  - file: "images/batt80.png"
+    id: batt80
+  - file: "images/batt100.png"
+    id: batt100
+  - file: "images/garageopen.png"
+    id: gopen
+  - file: "images/garageclosed.png"
+    id: gclosed
+  - file: "images/adguardon.png"
+    id: adgdon
+  - file: "images/adguardoff.png"
+    id: adgoff
+  - file: "images/3dbed.png"
+    id: prnbed
+  - file: "images/3dnozzle.png"
+    id: prnnoz
+  - file: "images/door-open.png"
+    id: dooropen
+  - file: "images/door-closed.png"  
+    id: doorclosed
+  - file: "images/gate-open.png"
+    id: gateopen
+  - file: "images/gate-closed.png"
+    id: gateclosed
+  - file: "images/mobile.png"
+    id: mobile
+  - file: "images/ring.png"
+    id: ring
+  - file: "images/cake.png"
+    id: cake
+  - file: "images/lightbulb.png"
+    id: bulb
+  - file: "images/j5.png"
+    id: j5
+  - file: "images/road.png"
+    id: road
+  - file: "images/home.png"
+    id: home
+  - file: "images/weather/sunny.png"
+    id: sunny
+    type: rgb24
+  - file: "images/weather/clearnight.png"
+    id: clearnight
+    type: rgb24
+  - file: "images/weather/cloudy.png"
+    id: cloudy
+    type: rgb24
+  - file: "images/weather/fog.png"
+    id: fog
+    type: rgb24
+  - file: "images/weather/hail.png"
+    id: hail
+    type: rgb24
+  - file: "images/weather/lightningrainy.png"
+    id: lightningrainy
+    type: rgb24
+  - file: "images/weather/partlycloudy.png"
+    id: partlycloudy
+    type: rgb24
+  - file: "images/weather/pouring.png"
+    id: pouring
+    type: rgb24
+  - file: "images/weather/rain.png"
+    id: rain
+    type: rgb24
+  - file: "images/weather/snow.png"
+    id: snow
+    type: rgb24
+  - file: "images/weather/snowyrainy.png"
+    id: snowyrainy
+    type: rgb24
+  - file: "images/weather/windy.png"
+    id: windy
+    type: rgb24
+  - file: "images/weather/windyvariant.png"
+    id: windyvariant
+    type: rgb24
+  - file: "images/weather/exceptional.png"
+    id: exceptional
+    type: rgb24

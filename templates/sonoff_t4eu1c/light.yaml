@@ -1,0 +1,5 @@
+light:
+  - platform: binary
+    name: ${friendly_name} Button
+    id: light_1
+    output: relay_1

@@ -1,0 +1,10 @@
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO0
+      mode: INPUT_PULLUP
+      inverted: True
+    id: button_1
+    on_press:
+      then:
+        - light.toggle: light_1

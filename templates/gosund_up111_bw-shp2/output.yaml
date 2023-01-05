@@ -1,0 +1,6 @@
+output:
+- platform: esp8266_pwm
+  id: ${devicename}_blue_output
+  pin:
+    number: GPIO01
+    inverted: True

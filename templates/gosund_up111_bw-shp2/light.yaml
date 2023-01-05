@@ -1,0 +1,5 @@
+light:
+- platform: monochromatic
+  name: ${friendly_name} Light
+  output: ${devicename}_blue_output
+  id: ${devicename}_blue_led

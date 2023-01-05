@@ -1,0 +1,9 @@
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO0
+      mode: INPUT_PULLUP
+      inverted: True
+    name: ${friendly_name} Switch
+    on_press:
+      - switch.toggle: relay

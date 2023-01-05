@@ -1,0 +1,23 @@
+switch:
+  - platform: gpio
+    name: ${friendly_name} Up
+    pin: GPIO27
+    interlock: &interlock [relayup, relaydown]
+    interlock_wait_time: 500ms
+    restore_mode: ALWAYS_OFF
+    id: relayup
+    on_turn_on:
+      then:
+        - delay: 18000ms
+        - switch.turn_off: relayup
+  - platform: gpio
+    name: ${friendly_name} Down
+    pin: GPIO14
+    interlock: *interlock
+    interlock_wait_time: 500ms
+    restore_mode: ALWAYS_OFF
+    id: relaydown
+    on_turn_on:
+      then:
+        - delay: 17200ms
+        - switch.turn_off: relaydown

@@ -1,0 +1,4 @@
+substitutions:
+  device_description: Gosund UP111 BW-SHP2 Power Monitoring Plug
+  current_res: "0.00221"
+  voltage_div: "955"

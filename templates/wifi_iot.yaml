@@ -1,0 +1,2 @@
+  ssid: "TA-IoT"
+  password: !secret wifi_iot_password

@@ -1,0 +1,56 @@
+sensor:
+  - platform: hlw8012
+    sel_pin:
+      number: GPIO12
+      inverted: true
+    cf_pin: GPIO04
+    cf1_pin: GPIO05
+    change_mode_every: 2
+    update_interval: 10s
+    current:
+      name: ${friendly_name} Amperage
+      icon: mdi:current-ac
+      unit_of_measurement: A
+      filters:
+    # Map from sensor -> measured value
+      - calibrate_linear:
+          - 0.0 -> 0.018
+          - 1.0 -> 1.642
+          - 3.03060 -> 5.156
+          - 4.76677 -> 8.123
+      - lambda: if (x < (0.01 - 0.018)) return 0; else return (x - 0.018);
+    voltage:
+      name: ${friendly_name} Voltage
+      icon: mdi:flash-circle
+      unit_of_measurement: V
+      filters:
+    # Map from sensor -> measured value
+      - calibrate_linear:
+          - 0.0 -> 0.0
+          - 262.2 -> 240.6
+          - 261.5 -> 238.7
+          - 258.9 -> 239.2
+          - 258.06821 -> 234.9
+    power:
+      id: wattage
+      name: ${friendly_name} Wattage
+      icon: mdi:flash-outline
+      unit_of_measurement: W
+      filters:
+    # Map from sensor -> measured value
+      - calibrate_linear:
+          - 0.0 -> 0
+          - 458.81201 -> 396.6
+          - 1408.99865 -> 1226
+          - 2208.44899 -> 1910
+#      - lambda: if (x < (2 + 1.5)) return 0; else return (x - 1.5);
+    current_resistor: ${current_res}
+    voltage_divider: ${voltage_div}
+  - platform: total_daily_energy
+    name: ${friendly_name} Total Daily Energy
+    icon: mdi:circle-slice-3
+    power_id: wattage
+    filters:
+      # Multiplication factor from W to kW is 0.001
+      - multiply: 0.001
+    unit_of_measurement: kWh

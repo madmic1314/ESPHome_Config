@@ -1,0 +1,14 @@
+packages:
+  device_base: !include templates/device_base.yaml
+  binary_sensor: !include templates/sonoff_t4eu1c/binary_sensor.yaml
+  status_led: !include templates/sonoff_t4eu1c/status_led.yaml
+  esphome: !include templates/sonoff_t4eu1c/esphome.yaml
+  light: !include templates/sonoff_t4eu1c/light.yaml
+  output: !include templates/sonoff_t4eu1c/output.yaml
+  substitutions: !include templates/sonoff_t4eu1c/substitutions.yaml
+
+wifi: !include templates/wifi_iot.yaml
+
+substitutions:
+  devicename: mkroomlight
+  friendly_name: MK Room Light Switch

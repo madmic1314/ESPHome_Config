@@ -1,0 +1,12 @@
+packages:
+  device_base: !include templates/device_base.yaml
+  esp32: !include templates/sonoff_dual_r3/esp32.yaml
+  substitutions: !include templates/sonoff_dual_r3/substitutions.yaml
+  status_led: !include templates/sonoff_dual_r3/status_led.yaml
+  switch: !include templates/sonoff_dual_r3/switch.yaml
+
+wifi: !include templates/wifi_iot.yaml
+
+substitutions:
+  devicename: cinemascreen
+  friendly_name: Cinema Screen Relay

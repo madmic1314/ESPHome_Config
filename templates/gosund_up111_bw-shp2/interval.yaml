@@ -1,0 +1,14 @@
+interval:
+  - interval: 2000ms
+    then:
+      - if:
+          condition:
+            for:
+              time: 30s
+              condition:
+                not:
+                  wifi.connected:
+          then:
+            - light.turn_on:
+                id: ${devicename}_blue_led
+                brightness: 100%

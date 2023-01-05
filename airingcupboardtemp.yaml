@@ -1,0 +1,27 @@
+packages:
+  device_base: !include templates/device_base.yaml
+  switch: !include templates/sonoff_r2/switch.yaml
+  binary_sensor: !include templates/sonoff_r2/binary_sensor.yaml
+  status_led: !include templates/sonoff_r2/status_led.yaml
+  esphome: !include templates/sonoff_r2/esphome.yaml
+  substitutions: !include templates/sonoff_r2/substitutions.yaml
+
+wifi: !include templates/wifi_iot.yaml
+
+substitutions:
+  devicename: airingcupboardtemp
+  friendly_name: Airing Cupboard Temperature
+
+dallas:
+  - pin: GPIO3
+
+sensor:
+  - platform: dallas
+    address: 0x5102131674E8AA28
+    name: "Airing Cupboard: Boiler Flow"
+  - platform: dallas
+    address: 0xDB021313C433AA28
+    name: "Airing Cupboard: Ambient"
+  - platform: dallas
+    address: 0x4B021313A89FAA28
+    name: "Airing Cupboard: Boiler Return"

@@ -1,0 +1,5 @@
+switch:
+  - platform: gpio
+    name: ${friendly_name} Power
+    pin: GPIO12
+    id: relay
